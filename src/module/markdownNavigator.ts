@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { debounce } from "../utils";
 
 const noHeaderTxt = "没有查找到标题";
 // 定义树节点
@@ -41,7 +42,8 @@ export class MarkdownNode extends vscode.TreeItem {
         }
       }
     }
-
+    // 特殊处理
+    rawLabel = rawLabel.replaceAll("`", "").replaceAll("**", "");
     // 设置显示标签
     this.label =
       level === 1
@@ -66,13 +68,16 @@ export class MarkdownNode extends vscode.TreeItem {
   }
 
   // 添加子节点
-  addChild(child: MarkdownNode) {
+  addChild(child: MarkdownNode, treeView?: vscode.TreeView<MarkdownNode>) {
     this.children.push(child);
+
     // 如果有子节点，更新折叠状态为 Expanded
     if (this.children.length > 0) {
       this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-      if (this.parent) {
-        this.parent.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+
+      // 如果有 TreeView，自动展开当前节点
+      if (treeView && this.parent) {
+        treeView.reveal(this, { expand: true });
       }
     }
   }
@@ -86,12 +91,16 @@ export class MarkdownTreeProvider
     MarkdownNode | undefined
   >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
-
+  private treeView?: vscode.TreeView<MarkdownNode>;
   constructor(private context: vscode.ExtensionContext) {}
 
   // 刷新树数据
   refresh(): void {
     this._onDidChangeTreeData.fire(undefined);
+  }
+  // 设置 TreeView
+  setTreeView(treeView: vscode.TreeView<MarkdownNode>) {
+    this.treeView = treeView;
   }
 
   // 元素转为 vscode 认识的类型
@@ -107,7 +116,10 @@ export class MarkdownTreeProvider
     // 没有就去构建
     return this.buildTree();
   }
-
+  // 实现 getParent 方法
+  getParent(element: MarkdownNode): vscode.ProviderResult<MarkdownNode> {
+    return element.parent; // 返回当前节点的父节点
+  }
   // 新增方法：构建层级树
   private async buildTree(): Promise<MarkdownNode[]> {
     const editor = vscode.window.activeTextEditor;
@@ -155,7 +167,7 @@ export class MarkdownTreeProvider
 
       // 如果有父节点，将新节点添加到父节点的子节点中
       if (parent) {
-        parent.addChild(newNode);
+        parent.addChild(newNode, this.treeView); // 传入 TreeView
       } else {
         rootNodes.push(newNode);
       }
@@ -179,15 +191,46 @@ export function initMdNavigator(context: vscode.ExtensionContext) {
     */
   const markdownNavTreeProvider = new MarkdownTreeProvider(context);
   // 监听文档变化自动刷新
-  vscode.workspace.onDidChangeTextDocument(() =>
-    markdownNavTreeProvider.refresh()
-  );
-  vscode.window.onDidChangeActiveTextEditor(() =>
-    markdownNavTreeProvider.refresh()
-  );
+  // 防抖刷新函数
+  const refreshTree = debounce(() => {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId === "markdown") {
+      markdownNavtreeView.message = "";
+      markdownNavTreeProvider.refresh();
+    }
+  }, 500); // 500ms 防抖时间
+
+  // 监听文档变化
+  vscode.workspace.onDidChangeTextDocument((event) => {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && event.document === editor.document) {
+      refreshTree();
+    }
+  });
+  // 监听保存事件
+  // vscode.workspace.onDidSaveTextDocument((document) => {
+  //   const editor = vscode.window.activeTextEditor;
+  //   if (
+  //     editor &&
+  //     document === editor.document &&
+  //     document.languageId === "markdown"
+  //   ) {
+  //     refreshTree();
+  //   }
+  // });
+
+  // 监听编辑器切换
+  vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor && editor.document.languageId === "markdown") {
+      refreshTree();
+    }
+  });
+
   const markdownNavtreeView = vscode.window.createTreeView("markdownUtils", {
     treeDataProvider: markdownNavTreeProvider,
   });
+  // 设置 TreeView
+  markdownNavTreeProvider.setTreeView(markdownNavtreeView);
 
   // 注册跳转命令
   const markdownNavJumpCommand = vscode.commands.registerCommand(

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { initMdNavigator } from "./utils/markdownNavigator";
-import { initConvertToHeadingCommand } from "./utils/convertToHeadingCommand";
+import { initMdNavigator } from "./module/markdownNavigator";
+import { initConvertToHeadingCommand } from "./module/convertToHeadingCommand";
 
 // 激活插件
 export function activate(context: vscode.ExtensionContext) {
