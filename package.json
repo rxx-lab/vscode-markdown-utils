@@ -3,7 +3,7 @@
   "displayName": "Markdown Utils",
   "description": "一个简单实用的 VS Code Markdown扩展，旨在提升 Markdown 文档的编写效率。",
   "icon": "images/icon.png",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
