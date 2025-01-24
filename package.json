@@ -1,8 +1,10 @@
 {
   "name": "markdown-utils",
   "displayName": "Markdown Utils",
-  "description": "Markdown Utils** 是一个简单实用的 VS Code 插件，旨在提升 Markdown 文档的编写效率。",
+  "description": "一个简单实用的 VS Code Markdown扩展，旨在提升 Markdown 文档的编写效率。",
+  "icon": "images/icon.png",
   "version": "0.0.1",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/rxx-lab/vscode-markdown-utils.git"
@@ -90,7 +92,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "build": "vsce package --out dist"
   },
   "devDependencies": {
     "@types/vscode": "^1.96.0",
