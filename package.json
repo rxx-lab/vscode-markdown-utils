@@ -1,0 +1,106 @@
+{
+  "name": "markdown-utils",
+  "displayName": "Markdown Utils",
+  "description": "Markdown Utils** 是一个简单实用的 VS Code 插件，旨在提升 Markdown 文档的编写效率。",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rxx-lab/vscode-markdown-utils.git"
+  },
+  "publisher": "mar",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "markdownUtils",
+          "name": "Markdown导航",
+          "icon": "$(book)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "markdownUtils.jumpToLine",
+        "title": "跳转到标题位置"
+      },
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "title": "转换行为标题",
+        "category": "Markdown 导航"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "args": 1,
+        "key": "ctrl+1",
+        "mac": "cmd+1",
+        "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "args": 2,
+        "key": "ctrl+2",
+        "mac": "cmd+2",
+        "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "args": 3,
+        "key": "ctrl+3",
+        "mac": "cmd+3",
+        "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "args": 4,
+        "key": "ctrl+4",
+        "mac": "cmd+4",
+        "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "args": 5,
+        "key": "ctrl+5",
+        "mac": "cmd+5",
+        "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "command": "markdownUtils.convertLineToHeading",
+        "args": 6,
+        "key": "ctrl+6",
+        "mac": "cmd+6",
+        "when": "editorTextFocus && editorLangId == markdown"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.96.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
