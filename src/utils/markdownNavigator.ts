@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 
+const noHeaderTxt = "没有查找到标题";
 // 定义树节点
 export class MarkdownNode extends vscode.TreeItem {
   public children: MarkdownNode[] = [];
@@ -33,7 +34,11 @@ export class MarkdownNode extends vscode.TreeItem {
           ? `${parent.numbering}.${parent.counter}`
           : `${parent.counter}`;
       } else {
-        this.numbering = "?"; // 异常情况处理
+        if (this.rawLabel === noHeaderTxt) {
+          this.numbering = ""; // 异常情况处理
+        } else {
+          this.numbering = "?"; // 异常情况处理
+        }
       }
     }
 
@@ -72,6 +77,7 @@ export class MarkdownNode extends vscode.TreeItem {
     }
   }
 }
+
 // 数据提供器
 export class MarkdownTreeProvider
   implements vscode.TreeDataProvider<MarkdownNode>
@@ -106,16 +112,28 @@ export class MarkdownTreeProvider
   private async buildTree(): Promise<MarkdownNode[]> {
     const editor = vscode.window.activeTextEditor;
     if (!editor || editor.document.languageId !== "markdown") {
-      return [];
+      return [new MarkdownNode(noHeaderTxt, 0, 0)];
     }
 
     const text = editor.document.getText();
+
+    // 忽略 Front Matter (YAML 格式的元数据)
+    const frontMatterRegex = /^---\s*[\s\S]*?\s*---\s*/;
+    const textWithoutFrontMatter = text.replace(frontMatterRegex, "");
+
+    // 忽略代码块中的标题
+    const codeBlockRegex = /```[\s\S]*?```|~~~[\s\S]*?~~~/g;
+    const textWithoutCodeBlocks = textWithoutFrontMatter.replace(
+      codeBlockRegex,
+      ""
+    );
+
     const headingRegex = /^(#+)\s+(.+)/gm;
     const rootNodes: MarkdownNode[] = [];
     const stack: MarkdownNode[] = [];
 
     let match;
-    while ((match = headingRegex.exec(text))) {
+    while ((match = headingRegex.exec(textWithoutCodeBlocks))) {
       const level = match[1].length;
       const rawLabel = match[2];
       const line = editor.document.positionAt(match.index).line;
@@ -144,6 +162,11 @@ export class MarkdownTreeProvider
 
       // 将新节点推入栈中
       stack.push(newNode);
+    }
+
+    // 如果没有找到任何标题，显示提示信息
+    if (rootNodes.length === 0) {
+      return [new MarkdownNode(noHeaderTxt, 0, 0)];
     }
 
     return rootNodes;
@@ -181,11 +204,6 @@ export function initMdNavigator(context: vscode.ExtensionContext) {
       }
     }
   );
-  /* 
-      context.subscriptions.push 是 Visual Studio Code (VS Code) 扩展开发中的一个重要 API
-      用于管理扩展生命周期中的资源。它的主要作用是将扩展中创建的资源（如命令、事件监听器、UI 组件等）注册到扩展的上下文中
-      以便在扩展被禁用或卸载时自动清理这些资源，避免内存泄漏或其他问题。
-    */
 
   context.subscriptions.push(markdownNavtreeView, markdownNavJumpCommand);
 }
